@@ -14,6 +14,7 @@ CPUS_DEFAULT=8
 JOB_NAME="VSCodeSSH"
 IDENTITY_FILE="$HOME/.ssh/rci"
 RCI_LOGIN_HOST="rci"
+FORWARD_AGENT_DEFAULT="yes"
 
 # Helper: extract port from ~/.ssh/config
 get_config_port() {
@@ -32,7 +33,7 @@ Host rci-compute
   User     ${USER_DEFAULT}
   IdentityFile ${IDENTITY_FILE}
   ServerAliveInterval 60
-  ForwardAgent yes
+  ForwardAgent ${FORWARD_AGENT_DEFAULT}
 ${END_MARKER}
 EOF
 }

@@ -66,6 +66,7 @@ Values to modify:
 - `JOB_NAME`: defaults to `"VSCodeSSH"`
 - `IDENTITY_FILE`: defaults to `"$HOME/.ssh/rci"` - update with your key used for passwordless authentication
 - `RCI_LOGIN_HOST`: defaults to `"rci"` - update with the name of your RCI host as configured in your `.ssh/config`
+- `FORWARD_AGENT_DEFAULT`: defaults to `"yes"` - set to `"no"` if you prefer not to forward SSH agent for security
 
 ## Usage
 If default values of the job suit your needs, then establishing the connection is simple:
@@ -98,5 +99,4 @@ After establishing the tunnel you can use `ssh rci-compute` to connect directly 
 SSH server logs for each job are stored in `~/sshd-<JOBID>.log` on the remote machine for debugging purposes.
 
 ## Known issues
-- Allow user to specify if they want to forward the agent to the remote session 
 - Fingerprints for each node are different, user has to accept it before establishing the tunnel (VSCode requires this as well)
