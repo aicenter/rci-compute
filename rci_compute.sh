@@ -34,6 +34,7 @@ Host rci-compute
   IdentityFile ${IDENTITY_FILE}
   ServerAliveInterval 60
   ForwardAgent ${FORWARD_AGENT_DEFAULT}
+  StrictHostKeyChecking accept-new
 ${END_MARKER}
 EOF
 }

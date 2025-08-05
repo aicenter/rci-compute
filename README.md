@@ -99,4 +99,4 @@ After establishing the tunnel you can use `ssh rci-compute` to connect directly 
 SSH server logs for each job are stored in `~/.sshd_user/logs/sshd-<JOBID>.log` on the remote machine for debugging purposes.
 
 ## Known issues
-- Fingerprints for each node are different, user has to accept it before establishing the tunnel (VSCode requires this as well)
+*There are currently no known issues. Please contact the author if you encounter some.*
