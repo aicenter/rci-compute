@@ -29,7 +29,7 @@ ${START_MARKER}
 Host rci-compute
   HostName localhost
   Port     ${port}
-  User     ${USER}
+  User     ${USER_DEFAULT}
   IdentityFile ${IDENTITY_FILE}
   ServerAliveInterval 60
   ForwardAgent yes
@@ -40,16 +40,13 @@ EOF
 # Function: start or resume tunnel
 start_rci_compute_ssh() {
   # parse options
-  # support short and long flags: -u|--user, -p|--partition, -t|--time, -m|--mem, -r|--cpus
-  USER=""
+  # support short and long flags: -p|--partition, -t|--time, -m|--mem, -r|--cpus
   PARTITION=""
   TIME_LIMIT=""
   MEM=""
   CPUS=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -u|--user)
-        USER="$2"; shift 2;;
       -p|--partition)
         PARTITION="$2"; shift 2;;
       -t|--time)
@@ -63,7 +60,6 @@ start_rci_compute_ssh() {
   done
 
   # use defaults if not set
-  USER=${USER:-$USER_DEFAULT}
   PARTITION=${PARTITION:-$PARTITION_DEFAULT}
   TIME_LIMIT=${TIME_LIMIT:-$TIME_DEFAULT}
   MEM=${MEM:-$MEM_DEFAULT}
@@ -71,7 +67,7 @@ start_rci_compute_ssh() {
 
   # Check for existing running job
   local jobid node port
-  jobid=$(ssh ${RCI_LOGIN_HOST} "squeue -h -o '%A' -u ${USER} -n ${JOB_NAME} -t RUNNING")
+  jobid=$(ssh ${RCI_LOGIN_HOST} "squeue -h -o '%A' -u ${USER_DEFAULT} -n ${JOB_NAME} -t RUNNING")
   if [[ -n "$jobid" ]]; then
     echo "Found existing job $jobid, reusing tunnel..."
     port=$(get_config_port)
@@ -103,7 +99,7 @@ start_rci_compute_ssh() {
 
   # Poll for sshd readiness
   echo -n "Waiting for sshd on $node:$port... "
-  until ssh -q -o ConnectTimeout=2 -J ${RCI_LOGIN_HOST} ${USER}@${node} -p $port true; do
+  until ssh -q -o ConnectTimeout=2 -J ${RCI_LOGIN_HOST} ${USER_DEFAULT}@${node} -p $port true; do
     printf .; sleep 1
   done
   echo "ready"
@@ -116,7 +112,7 @@ start_rci_compute_ssh() {
 # Function: stop job and clean config
 stop_rci_compute_ssh() {
   local jobid
-  jobid=$(ssh ${RCI_LOGIN_HOST} "squeue -h -o '%A' -n ${JOB_NAME} -t RUNNING")
+  jobid=$(ssh ${RCI_LOGIN_HOST} "squeue -h -o '%A' -u ${USER_DEFAULT} -n ${JOB_NAME} -t RUNNING")
   if [[ -n "$jobid" ]]; then
     echo "Cancelling job $jobid..."
     ssh ${RCI_LOGIN_HOST} "scancel $jobid"
@@ -133,6 +129,6 @@ rci_compute() {
   case "$1" in
     start) shift; start_rci_compute_ssh "$@";;
     stop)  stop_rci_compute_ssh;;
-    *) echo "Usage: rci_compute start [-u|--user USER] [-p|--partition PART] [-t|--time TIME] [-m|--mem MEM] [-r|--cpus CPUS]"; return 1;;
+    *) echo "Usage: rci_compute start [-p|--partition PART] [-t|--time TIME] [-m|--mem MEM] [-r|--cpus CPUS]"; return 1;;
   esac
 }

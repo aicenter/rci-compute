@@ -58,7 +58,7 @@ AllowUsers $USER
 Modify the default values in `rci_compute.sh` and either source it from or add it to your `.bashrc` (or your prefered shell counterparts). 
 
 Values to modify:
-- `USER_DEFAULT`: defaults to `$USER` (current user)
+- `USER_DEFAULT`: defaults to `$USER` (current user) - **MUST be set to your remote username on RCI**
 - `PARTITION_DEFAULT`: defaults to `"cpufast"`
 - `TIME_DEFAULT`: defaults to `"04:00:00"`
 - `MEM_DEFAULT`: defaults to `"32G"`
@@ -81,7 +81,7 @@ Exiting the shell with an established tunnel is not enough.
 
 For more detailed configuration of job resources use:
 ```bash
-rci_compute start [-u|--user USER] [-p|--partition PART] [-t|--time TIME] [-m|--mem MEM] [-r|--cpus CPUS]
+rci_compute start [-p|--partition PART] [-t|--time TIME] [-m|--mem MEM] [-r|--cpus CPUS]
 ```
 
 After establishing the tunnel you can use `ssh rci-compute` to connect directly to the running job or use VSCode (and other tools) to connect to the newly created host in `.ssh/config`.
@@ -89,8 +89,6 @@ After establishing the tunnel you can use `ssh rci-compute` to connect directly 
 SSH server logs for each job are stored in `~/sshd-<JOBID>.log` on the remote machine for debugging purposes.
 
 ## Known issues
-- Force users to setup their default user to the one they use remotely -> there is no need for -u flag in most cases
-- Job name identification will fail if there are multiple jobs with the same name but different users - critical if used by multiple people
 - Currently does not support GPU partitions because they require additional argument `--gres=gpu:1`
 - Allow user to specify if they want to forward the agent to the remote session 
 - Fingerprints for each node are different, user has to accept it before establishing the tunnel (VSCode requires this as well)
