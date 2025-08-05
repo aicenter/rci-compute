@@ -12,6 +12,8 @@ TIME_DEFAULT="04:00:00"
 MEM_DEFAULT="32G"
 CPUS_DEFAULT=8
 JOB_NAME="VSCodeSSH"
+IDENTITY_FILE="$HOME/.ssh/rci"
+RCI_LOGIN_HOST="rci"
 
 # Helper: extract port from ~/.ssh/config
 get_config_port() {
@@ -28,7 +30,7 @@ Host rci-compute
   HostName localhost
   Port     ${port}
   User     ${USER}
-  IdentityFile ~/.ssh/rci
+  IdentityFile ${IDENTITY_FILE}
   ServerAliveInterval 60
   ForwardAgent yes
 ${END_MARKER}
@@ -69,7 +71,7 @@ start_rci_compute_ssh() {
 
   # Check for existing running job
   local jobid node port
-  jobid=$(ssh rci "squeue -h -o '%A' -u ${USER} -n ${JOB_NAME} -t RUNNING")
+  jobid=$(ssh ${RCI_LOGIN_HOST} "squeue -h -o '%A' -u ${USER} -n ${JOB_NAME} -t RUNNING")
   if [[ -n "$jobid" ]]; then
     echo "Found existing job $jobid, reusing tunnel..."
     port=$(get_config_port)
@@ -78,7 +80,7 @@ start_rci_compute_ssh() {
     port=$(shuf -i20000-30000 -n1)
     update_ssh_config "$port"
 
-    jobid=$(ssh rci \
+    jobid=$(ssh ${RCI_LOGIN_HOST} \
       "sbatch --parsable \
          --job-name=${JOB_NAME} \
          -p ${PARTITION} \
@@ -95,29 +97,29 @@ start_rci_compute_ssh() {
   node=""
   while [[ -z "$node" ]]; do
     sleep 1
-    node=$(ssh rci "scontrol show job $jobid --oneline" | sed -n 's/.*NodeList=\([^ ]*\).*/\1/p')
+    node=$(ssh ${RCI_LOGIN_HOST} "scontrol show job $jobid --oneline" | sed -n 's/.*NodeList=\([^ ]*\).*/\1/p')
   done
   echo "node=$node"
 
   # Poll for sshd readiness
   echo -n "Waiting for sshd on $node:$port... "
-  until ssh -q -o ConnectTimeout=2 -J rci ${USER}@${node} -p $port true; do
+  until ssh -q -o ConnectTimeout=2 -J ${RCI_LOGIN_HOST} ${USER}@${node} -p $port true; do
     printf .; sleep 1
   done
   echo "ready"
 
   # Open local tunnel (foreground)
   echo "Opening tunnel: localhost:$port -> $node:$port"
-  ssh -N -L ${port}:${node}:${port} rci
+  ssh -N -L ${port}:${node}:${port} ${RCI_LOGIN_HOST}
 }
 
 # Function: stop job and clean config
 stop_rci_compute_ssh() {
   local jobid
-  jobid=$(ssh rci "squeue -h -o '%A' -n ${JOB_NAME} -t RUNNING")
+  jobid=$(ssh ${RCI_LOGIN_HOST} "squeue -h -o '%A' -n ${JOB_NAME} -t RUNNING")
   if [[ -n "$jobid" ]]; then
     echo "Cancelling job $jobid..."
-    ssh rci "scancel $jobid"
+    ssh ${RCI_LOGIN_HOST} "scancel $jobid"
   else
     echo "No running ${JOB_NAME} job found."
   fi
