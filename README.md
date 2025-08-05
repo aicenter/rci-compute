@@ -96,7 +96,7 @@ rci_compute start -p h200fast --gres gpu:2
 
 After establishing the tunnel you can use `ssh rci-compute` to connect directly to the running job or use VSCode (and other tools) to connect to the newly created host in `.ssh/config`.
 
-SSH server logs for each job are stored in `~/sshd-<JOBID>.log` on the remote machine for debugging purposes.
+SSH server logs for each job are stored in `~/.sshd_user/logs/sshd-<JOBID>.log` on the remote machine for debugging purposes.
 
 ## Known issues
 - Fingerprints for each node are different, user has to accept it before establishing the tunnel (VSCode requires this as well)
