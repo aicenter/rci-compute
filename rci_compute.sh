@@ -40,11 +40,12 @@ EOF
 # Function: start or resume tunnel
 start_rci_compute_ssh() {
   # parse options
-  # support short and long flags: -p|--partition, -t|--time, -m|--mem, -r|--cpus
+  # support short and long flags: -p|--partition, -t|--time, -m|--mem, -r|--cpus, --gres
   PARTITION=""
   TIME_LIMIT=""
   MEM=""
   CPUS=""
+  GRES=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -p|--partition)
@@ -55,6 +56,8 @@ start_rci_compute_ssh() {
         MEM="$2"; shift 2;;
       -r|--cpus)
         CPUS="$2"; shift 2;;
+      --gres)
+        GRES="$2"; shift 2;;
       *) echo "Unknown arg: $1"; return 1;;
     esac
   done
@@ -76,6 +79,12 @@ start_rci_compute_ssh() {
     port=$(shuf -i20000-30000 -n1)
     update_ssh_config "$port"
 
+    # Prepare GRES argument if specified
+    GRES_ARG=""
+    if [[ -n "$GRES" ]]; then
+      GRES_ARG="--gres=${GRES}"
+    fi
+
     jobid=$(ssh ${RCI_LOGIN_HOST} \
       "sbatch --parsable \
          --job-name=${JOB_NAME} \
@@ -84,6 +93,7 @@ start_rci_compute_ssh() {
          --cpus-per-task=${CPUS} \
          --time=${TIME_LIMIT} \
          --mem=${MEM} \
+         ${GRES_ARG} \
          ~/rci_start_sshd.sh ${port}")
     echo "Launched sbatch job $jobid"
   fi
@@ -129,6 +139,6 @@ rci_compute() {
   case "$1" in
     start) shift; start_rci_compute_ssh "$@";;
     stop)  stop_rci_compute_ssh;;
-    *) echo "Usage: rci_compute start [-p|--partition PART] [-t|--time TIME] [-m|--mem MEM] [-r|--cpus CPUS]"; return 1;;
+    *) echo "Usage: rci_compute start [-p|--partition PART] [-t|--time TIME] [-m|--mem MEM] [-r|--cpus CPUS] [--gres GRES]"; return 1;;
   esac
 }

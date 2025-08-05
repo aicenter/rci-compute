@@ -81,7 +81,16 @@ Exiting the shell with an established tunnel is not enough.
 
 For more detailed configuration of job resources use:
 ```bash
-rci_compute start [-p|--partition PART] [-t|--time TIME] [-m|--mem MEM] [-r|--cpus CPUS]
+rci_compute start [-p|--partition PART] [-t|--time TIME] [-m|--mem MEM] [-r|--cpus CPUS] [--gres GRES]
+```
+
+For GPU jobs, specify both the partition and GRES requirement:
+```bash
+# Request 1 GPU on intel partition
+rci_compute start -p gpufast --gres gpu:1
+
+# Request 2 H200 GPUs 
+rci_compute start -p h200fast --gres gpu:2
 ```
 
 After establishing the tunnel you can use `ssh rci-compute` to connect directly to the running job or use VSCode (and other tools) to connect to the newly created host in `.ssh/config`.
@@ -89,6 +98,5 @@ After establishing the tunnel you can use `ssh rci-compute` to connect directly 
 SSH server logs for each job are stored in `~/sshd-<JOBID>.log` on the remote machine for debugging purposes.
 
 ## Known issues
-- Currently does not support GPU partitions because they require additional argument `--gres=gpu:1`
 - Allow user to specify if they want to forward the agent to the remote session 
 - Fingerprints for each node are different, user has to accept it before establishing the tunnel (VSCode requires this as well)
