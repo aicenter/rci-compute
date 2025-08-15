@@ -47,9 +47,6 @@ PubkeyAuthentication yes
 PasswordAuthentication no
 ChallengeResponseAuthentication no
 PermitRootLogin no
-
-# allow only your user to connect
-AllowUsers $USER
 ```
 
 3. copy remote script `rci_start_sshd.sh` to your home directory on rci and make it executable (`chmod +x rci_start_sshd.sh`)
