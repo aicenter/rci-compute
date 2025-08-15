@@ -18,7 +18,7 @@ FORWARD_AGENT_DEFAULT="yes"
 
 # Helper: extract port from ~/.ssh/config
 get_config_port() {
-  sed -n "/${START_MARKER}/,/${END_MARKER}/ { /Port[[:space:]]\+\([0-9]\+\)/{ s//\1/; p } }" "$SSH_CFG" | head -n1
+  sed -n "/${START_MARKER}/,/${END_MARKER}/p" "$SSH_CFG" | grep -E "^\s*Port\s+" | awk '{print $2}' | head -n1
 }
 
 # Helper: update ssh config block

@@ -18,7 +18,7 @@ exec &> "$HOME/.sshd_user/logs/sshd-${SLURM_JOB_ID}.log"
 echo "=== Starting sshd on $(hostname -s):${port} ==="
 echo "Using config: $config"
 
-# Launch sshd in debug mode (-ddd) so we get plenty of info:
+# Launch sshd
 nohup /usr/sbin/sshd -D -f "$config" \
      -o ListenAddress=$(hostname -s) \
      -o Port="$port" &

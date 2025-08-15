@@ -17,7 +17,15 @@ The tunnel allows direct SSH access to the compute node as if it were running lo
 ## Setup
 
 ### Prerequisites
-Having setup passwordless login to RCI. Tested on Ubuntu 24.04.2 LTS.
+Having setup passwordless login to RCI with agent forwarding, i.e. your local `.ssh/config` should look like this.
+```
+Host rci         
+    HostName login3.rci.cvut.cz
+    User {...}
+    IdentityFile ~/.ssh/{...}
+    ForwardAgent yes
+```
+Tested on Ubuntu 24.04.2 LTS and MacOS.
 
 ### Remote machine
 On the remote machine we have to setup an ssh server configuration, which allows us to run `/usr/bin/sshd` without priviliges.
@@ -96,4 +104,5 @@ After establishing the tunnel you can use `ssh rci-compute` to connect directly 
 SSH server logs for each job are stored in `~/.sshd_user/logs/sshd-<JOBID>.log` on the remote machine for debugging purposes.
 
 ## Known issues
-*There are currently no known issues. Please contact the author if you encounter some.*
+- `StrictHostKeyChecking accept-new` does not solve the auth issues with fingerprints
+- remote job logging should maybe just use slurm logs instead of redirecting all output to specific log file itself
