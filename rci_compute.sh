@@ -14,7 +14,7 @@ CPUS_DEFAULT=8
 JOB_NAME="VSCodeSSH"
 IDENTITY_FILE="$HOME/.ssh/rci"
 RCI_LOGIN_HOST="rci"
-FORWARD_AGENT_DEFAULT="yes"
+FORWARD_AGENT_DEFAULT="no"
 
 # Helper: extract port from ~/.ssh/config
 get_config_port() {
@@ -118,7 +118,7 @@ start_rci_compute_ssh() {
 
   # Open local tunnel (foreground)
   echo "Opening tunnel: localhost:$port -> $node:$port"
-  ssh -N -L ${port}:${node}:${port} ${RCI_LOGIN_HOST}
+  ssh -N -L 127.0.0.1:${port}:${node}:${port} ${RCI_LOGIN_HOST}
 }
 
 # Function: stop job and clean config

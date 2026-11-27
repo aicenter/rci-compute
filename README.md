@@ -1,6 +1,8 @@
 # RCI-COMPUTE
 Set of bash scripts to easily spawn slurm compute node with given parameters and establish ssh tunnel for subsequent use.
 
+> **Disclaimer:** This is an unofficial, community-maintained tool. It is not developed or supported by the RCI cluster administrators. Use it at your own risk and in accordance with the RCI usage rules. The intended purpose is to keep heavier interactive workloads (VS Code server, AI coding assistants, notebooks, ...) off the login nodes by running them inside a regular Slurm allocation. Please cancel jobs you no longer use (`rci_compute stop`) so you do not block resources for others.
+
 ## Under the hood
 
 The tool automates the following workflow:
@@ -17,14 +19,14 @@ The tunnel allows direct SSH access to the compute node as if it were running lo
 ## Setup
 
 ### Prerequisites
-Having setup passwordless login to RCI with agent forwarding, i.e. your local `.ssh/config` should look like this.
+Having setup passwordless (key-based) login to RCI, i.e. your local `.ssh/config` should look like this.
 ```
-Host rci         
+Host rci
     HostName login3.rci.cvut.cz
     User {...}
     IdentityFile ~/.ssh/{...}
-    ForwardAgent yes
 ```
+Agent forwarding is **not** required by the tool itself (the compute node is reached via `ProxyJump`, which authenticates from your local machine). See [Security notes](#security-notes) before enabling it.
 Tested on Ubuntu 24.04.2 LTS and MacOS.
 
 ### Remote machine
@@ -71,7 +73,7 @@ Values to modify:
 - `JOB_NAME`: defaults to `"VSCodeSSH"`
 - `IDENTITY_FILE`: defaults to `"$HOME/.ssh/rci"` - update with your key used for passwordless authentication
 - `RCI_LOGIN_HOST`: defaults to `"rci"` - update with the name of your RCI host as configured in your `.ssh/config`
-- `FORWARD_AGENT_DEFAULT`: defaults to `"yes"` - set to `"no"` if you prefer not to forward SSH agent for security
+- `FORWARD_AGENT_DEFAULT`: defaults to `"no"` - set to `"yes"` only if you need your local SSH keys on the compute node (e.g. `git push` over SSH); see [Security notes](#security-notes)
 
 ## Usage
 If default values of the job suit your needs, then establishing the connection is simple:
@@ -103,8 +105,19 @@ After establishing the tunnel you can use `ssh rci-compute` to connect directly 
 
 SSH server logs for each job are stored in `~/.sshd_user/logs/sshd-<JOBID>.log` on the remote machine for debugging purposes.
 
+## Security notes
+- **Agent forwarding** is off by default. When enabled, anyone with root access on the compute node (or the login node, if you forward the agent there too) can use your loaded SSH keys for as long as you are connected. If you need it, prefer a dedicated key (e.g. a GitHub deploy key) or `ssh-add -c` so each use has to be confirmed.
+- **The user sshd is reachable by other cluster users.** It listens on the compute node's cluster interface on a random port. Only public-key authentication is allowed (password and keyboard-interactive login are disabled in `sshd_config`), so keep your `~/.ssh/authorized_keys` on RCI limited to keys you control.
+- **Host keys** in `~/.sshd_user` are private keys. Keep them readable only by you (`chmod 600 ~/.sshd_user/ssh_host_*_key`) and never commit or share them.
+- **`StrictHostKeyChecking accept-new`** is set for the `rci-compute` host, because the job can land on a different node and port each time. The connection is still tunnelled through the authenticated login node, so this only affects the inner hop.
+- **The local tunnel** listens on `127.0.0.1` only, so other machines on your local network cannot reach it.
+- The script edits your `~/.ssh/config` (a block between `# START rci-compute` / `# END rci-compute`) and keeps a backup in `~/.ssh/config.bak`.
+
 ## Known issues
 - `StrictHostKeyChecking accept-new` does not solve the auth issues with fingerprints
 - remote job logging should maybe just use slurm logs instead of redirecting all output to specific log file itself
 - the script cannot resolve the situation when a job cannot be launched due to incompatible requirements, e.g. PartitionTimeLimit; it will wait for a node assignment indefinitelly
 - **VSCode related** reloading a window in VSCode upon establishing the connection to a new job/node fails and has to be retried (probably cause by the changes in ssh config - port?)
+
+## License
+Released under the [MIT License](LICENSE).
