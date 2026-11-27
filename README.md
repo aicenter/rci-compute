@@ -106,3 +106,5 @@ SSH server logs for each job are stored in `~/.sshd_user/logs/sshd-<JOBID>.log` 
 ## Known issues
 - `StrictHostKeyChecking accept-new` does not solve the auth issues with fingerprints
 - remote job logging should maybe just use slurm logs instead of redirecting all output to specific log file itself
+- the script cannot resolve the situation when a job cannot be launched due to incompatible requirements, e.g. PartitionTimeLimit; it will wait for a node assignment indefinitelly
+- **VSCode related** reloading a window in VSCode upon establishing the connection to a new job/node fails and has to be retried (probably cause by the changes in ssh config - port?)
